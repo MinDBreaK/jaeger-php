@@ -3,6 +3,8 @@
 [![License](https://img.shields.io/github/license/jukylin/jaeger-php.svg)](https://github.com/jukylin/jaeger-php/blob/master/LICENSE)
 [![Coverage Status](https://coveralls.io/repos/github/jukylin/jaeger-php/badge.svg?branch=master)](https://coveralls.io/github/jukylin/jaeger-php?branch=master)
 
+⚠️ Not stable - WIP
+
 # jaeger-php
 
 ## Install
