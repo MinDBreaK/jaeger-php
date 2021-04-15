@@ -15,112 +15,104 @@
 
 namespace Jaeger;
 
+use OpenTracing\SpanContext;
 
-class Span implements \OpenTracing\Span{
+class Span implements \OpenTracing\Span
+{
 
-    private $operationName = '';
+    private string $operationName;
 
-    public $startTime = '';
+    public mixed $startTime = '';
 
-    public $finishTime = '';
+    public string $finishTime = '';
 
-    public $spanKind = '';
+    public string $spanKind = '';
 
-    public $spanContext = null;
+    public ?SpanContext $spanContext = null;
 
-    public $duration = 0;
+    public int $duration = 0;
 
-    public $logs = [];
+    public array $logs = [];
 
-    public $tags = [];
+    public array $tags = [];
 
-    public $references = [];
+    public array $references = [];
 
-    public function __construct($operationName, \OpenTracing\SpanContext $spanContext, $references, $startTime = null){
+    public function __construct($operationName, SpanContext $spanContext, $references, $startTime = null)
+    {
         $this->operationName = $operationName;
-        $this->startTime = $startTime == null ? $this->microtimeToInt() : $startTime;
-        $this->spanContext = $spanContext;
-        $this->references = $references;
+        $this->startTime     = $startTime ?? $this->microtimeToInt();
+        $this->spanContext   = $spanContext;
+        $this->references    = $references;
     }
 
     /**
      * @return string
      */
-    public function getOperationName(){
+    public function getOperationName(): string
+    {
         return $this->operationName;
     }
 
     /**
      * @return SpanContext
      */
-    public function getContext(){
+    public function getContext(): SpanContext
+    {
         return $this->spanContext;
     }
 
     /**
-     * @param float|int|\DateTimeInterface|null $finishTime if passing float or int
-     * it should represent the timestamp (including as many decimal places as you need)
-     * @param array $logRecords
-     * @return mixed
+     * @param null $finishTime                              if passing float or int
+     *                                                      it should represent the timestamp (including as many
+     *                                                      decimal places as you need)
      */
-    public function finish($finishTime = null, array $logRecords = []){
-        $this->finishTime = $finishTime == null ? $this->microtimeToInt() : $finishTime;
-        $this->duration = $this->finishTime - $this->startTime;
+    public function finish($finishTime = null): void
+    {
+        $this->finishTime = $finishTime ?? $this->microtimeToInt();
+        $this->duration   = $this->finishTime - $this->startTime;
     }
 
-    /**
-     * @param string $newOperationName
-     */
-    public function overwriteOperationName($newOperationName){
+    public function overwriteOperationName(string $newOperationName): void
+    {
         $this->operationName = $newOperationName;
     }
 
-
-    public function setTag($key, $value){
+    public function setTag(string $key, $value): void
+    {
         $this->tags[$key] = $value;
     }
-
 
     /**
      * Adds a log record to the span
      *
-     * @param array $fields [key => val]
+     * @param array                        $fields [key => val]
      * @param int|float|\DateTimeInterface $timestamp
-     * @throws SpanAlreadyFinished if the span is already finished
      */
-    public function log(array $fields = [], $timestamp = null){
-        $log['timestamp'] = $timestamp ? $timestamp : $this->microtimeToInt();
-        $log['fields'] = $fields;
-        $this->logs[] = $log;
+    public function log(array $fields = [], $timestamp = null): void
+    {
+        $log['timestamp'] = $timestamp ?: $this->microtimeToInt();
+        $log['fields']    = $fields;
+        $this->logs[]     = $log;
+    }
+    public function addBaggageItem(string $key, string $value): void
+    {
+        $this->log(
+            [
+                'event' => 'baggage',
+                'key'   => $key,
+                'value' => $value,
+            ]
+        );
     }
 
-    /**
-     * Adds a baggage item to the SpanContext which is immutable so it is required to use SpanContext::withBaggageItem
-     * to get a new one.
-     *
-     * @param string $key
-     * @param string $value
-     * @throws SpanAlreadyFinished if the span is already finished
-     */
-    public function addBaggageItem($key, $value){
-        $this->log([
-            'event' => 'baggage',
-            'key' => $key,
-            'value' => $value,
-        ]);
-        return $this->spanContext->withBaggageItem($key, $value);
-    }
-
-    /**
-     * @param string $key
-     * @return string|null
-     */
-    public function getBaggageItem($key){
+    public function getBaggageItem(string $key): ?string
+    {
         return $this->spanContext->getBaggageItem($key);
     }
 
-
-    private function microtimeToInt(){
-        return intval(microtime(true) * 1000000);
+    private function microtimeToInt(): int
+    {
+        return (int)(microtime(true) * 1000000);
     }
 }

@@ -15,14 +15,13 @@
 
 namespace Jaeger;
 
-
-class SpanContext implements \OpenTracing\SpanContext{
+class SpanContext implements \OpenTracing\SpanContext
+{
     // traceID represents globally unique ID of the trace.
     // Usually generated as a random number.
     public $traceIdLow;
 
     public $traceIdHigh;
-
 
     // spanID represents span ID that must be unique within its trace,
     // but does not have to be globally unique.
@@ -43,24 +42,25 @@ class SpanContext implements \OpenTracing\SpanContext{
     // extracted from a TextMap carrier.
     public $debugId;
 
-
-    public function __construct($spanId, $parentId, $flags, $baggage = null, $debugId = 0){
-        $this->spanId = $spanId;
+    public function __construct($spanId, $parentId, $flags, $baggage = null, $debugId = 0)
+    {
+        $this->spanId   = $spanId;
         $this->parentId = $parentId;
-        $this->flags = $flags;
-        $this->baggage = $baggage;
-        $this->debugId = $debugId;
+        $this->flags    = $flags;
+        $this->baggage  = $baggage;
+        $this->debugId  = $debugId;
     }
 
-
-    public function getBaggageItem($key){
-        return isset($this->baggage[$key]) ? $this->baggage[$key] : null;
+    public function getBaggageItem(string $key): ?string
+    {
+        return $this->baggage[$key] ?? null;
     }
 
-
-    public function withBaggageItem($key, $value){
+    public function withBaggageItem(string $key, string $value): \OpenTracing\SpanContext
+    {
         $this->baggage[$key] = $value;
-        return true;
+
+        return $this;
     }
 
     public function getIterator()
@@ -68,28 +68,34 @@ class SpanContext implements \OpenTracing\SpanContext{
         // TODO: Implement getIterator() method.
     }
 
-
-    public function buildString(){
-        if($this->traceIdHigh){
-            return sprintf("%x%016x:%x:%x:%x", $this->traceIdHigh, $this->traceIdLow,
-                $this->spanId, $this->parentId, $this->flags);
+    public function buildString(): string
+    {
+        if ($this->traceIdHigh) {
+            return sprintf(
+                "%x%016x:%x:%x:%x",
+                $this->traceIdHigh,
+                $this->traceIdLow,
+                $this->spanId,
+                $this->parentId,
+                $this->flags
+            );
         }
 
         return sprintf("%x:%x:%x:%x", $this->traceIdLow, $this->spanId, $this->parentId, $this->flags);
     }
 
-
-    public function spanIdToString(){
+    public function spanIdToString(): string
+    {
         return sprintf("%x", $this->spanId);
     }
 
-
-    public function parentIdToString(){
+    public function parentIdToString(): string
+    {
         return sprintf("%x", $this->parentId);
     }
 
-
-    public function traceIdLowToString(){
+    public function traceIdLowToString(): string
+    {
         if ($this->traceIdHigh) {
             return sprintf("%x%016x", $this->traceIdHigh, $this->traceIdLow);
         }
@@ -97,67 +103,64 @@ class SpanContext implements \OpenTracing\SpanContext{
         return sprintf("%x", $this->traceIdLow);
     }
 
-
-    public function flagsToString(){
+    public function flagsToString(): string
+    {
         return sprintf("%x", $this->flags);
     }
 
-
     /**
      * 是否取样
+     *
      * @return mixed
      */
-    public function isSampled(){
+    public function isSampled(): mixed
+    {
         return $this->flags;
     }
 
-
-    public function hexToSignedInt($hex)
+    public function hexToSignedInt($hex): int
     {
         //Avoid pure Arabic numerals eg:1
-        if (gettype($hex) != "string") {
+        if (!is_string($hex)) {
             $hex .= '';
         }
 
         $hexStrLen = strlen($hex);
-        $dec = 0;
+        $dec       = 0;
         for ($i = 0; $i < $hexStrLen; $i++) {
             $hexByteStr = $hex[$i];
             if (ctype_xdigit($hexByteStr)) {
                 $decByte = hexdec($hex[$i]);
-                $dec = ($dec << 4) | $decByte;
+                $dec     = ($dec << 4) | $decByte;
             }
         }
 
         return $dec;
     }
 
-
-    public function traceIdToString($traceId)
+    public function traceIdToString($traceId): void
     {
         $len = strlen($traceId);
         if ($len > 16) {
             $this->traceIdHigh = $this->hexToSignedInt(substr($traceId, 0, 16));
-            $this->traceIdLow = $this->hexToSignedInt(substr($traceId, 16));
+            $this->traceIdLow  = $this->hexToSignedInt(substr($traceId, 16));
         } else {
             $this->traceIdLow = $this->hexToSignedInt($traceId);
         }
     }
 
-
     /**
      * @return bool
      */
-    public function isValid()
+    public function isValid(): bool
     {
         return $this->isTraceIdValid() && $this->spanId;
     }
 
-
     /**
      * @return bool
      */
-    public function isTraceIdValid()
+    public function isTraceIdValid(): bool
     {
         return $this->traceIdLow || $this->traceIdHigh;
     }

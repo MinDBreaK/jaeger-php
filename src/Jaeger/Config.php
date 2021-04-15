@@ -150,21 +150,24 @@ class Config {
     }
 
 
-    public function setSampler(Sampler $sampler){
+    public function setSampler(Sampler $sampler): self
+    {
         $this->sampler = $sampler;
 
         return $this;
     }
 
 
-    public function gen128bit(){
+    public function gen128bit(): self
+    {
         $this->gen128bit = true;
 
         return $this;
     }
 
 
-    public function flush(){
+    public function flush(): bool
+    {
         if(count(self::$tracer) > 0) {
             foreach(self::$tracer as $tracer){
                 $tracer->reportSpan();
