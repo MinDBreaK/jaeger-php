@@ -15,6 +15,7 @@
 
 namespace Jaeger;
 
+use OpenTracing\Reference;
 use OpenTracing\SpanContext;
 
 class Span implements \OpenTracing\Span
@@ -36,9 +37,19 @@ class Span implements \OpenTracing\Span
 
     public array $tags = [];
 
+    /**
+     * @var Reference[]
+     */
     public array $references = [];
 
-    public function __construct($operationName, SpanContext $spanContext, $references, $startTime = null)
+    /**
+     * Span constructor.
+     *
+     * @param             $operationName
+     * @param SpanContext $spanContext
+     * @param Reference[] $references
+     */
+    public function __construct($operationName, SpanContext $spanContext, array $references, $startTime = null)
     {
         $this->operationName = $operationName;
         $this->startTime     = $startTime ?? $this->microtimeToInt();
@@ -95,6 +106,7 @@ class Span implements \OpenTracing\Span
         $log['fields']    = $fields;
         $this->logs[]     = $log;
     }
+
     public function addBaggageItem(string $key, string $value): void
     {
         $this->log(

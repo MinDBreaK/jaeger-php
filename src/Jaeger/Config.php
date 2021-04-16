@@ -57,7 +57,7 @@ class Config {
     }
 
 
-    public static function getInstance()
+    public static function getInstance(): self
     {
         if(! (self::$instance instanceof self) )
         {
@@ -66,22 +66,15 @@ class Config {
         return self::$instance;
     }
 
-
-    /**
-     * init jaeger, return can use flush  buffers
-     * @param $serviceName
-     * @param string $agentHostPort
-     * @return Jaeger|null
-     * @throws \Exception
-     */
-    public function initTracer($serverName, $agentHostPort = ''){
+    public function initTracer(string $serverName, string $agentHostPort = ''): Jaeger
+    {
 
         if(self::$disabled){
             return NoopTracer::create();
         }
 
-        if($serverName == ''){
-            throw new \Exception("serverName require");
+        if($serverName === ''){
+            throw new \UnexpectedValueException("serverName require");
         }
 
         if(isset(self::$tracer[$serverName]) && !empty(self::$tracer[$serverName])){

@@ -128,7 +128,7 @@ class Jaeger implements Tracer
                 $span->setTag($k, $tag);
             }
         }
-        if ($spanContext->isSampled() === true) {
+        if ($spanContext->isSampled() == true) {
             $this->spans[] = $span;
         }
 
