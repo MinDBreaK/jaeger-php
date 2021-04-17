@@ -1,5 +1,5 @@
 [![PHP Version](https://img.shields.io/packagist/php-v/mindbreak/jaeger-php/dev-master?style=flat-square)](https://php.net)
-[![License](https://img.shields.io/github/license/mindbreak/jaeger-php.svg)](https://github.com/mindbreak/jaeger-php/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/mindbreak/jaeger-php.svg?style=flat-square)](https://github.com/mindbreak/jaeger-php/blob/master/LICENSE)
 
 ⚠️ Not stable - WIP
 
