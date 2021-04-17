@@ -11,7 +11,7 @@ Install via composer.
 
 ```
 composer config minimum-stability dev
-composer require jukylin/jaeger-php
+composer require mindbreak/jaeger-php
 ```
 
 ## Init Jaeger-php
