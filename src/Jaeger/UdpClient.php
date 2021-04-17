@@ -15,63 +15,87 @@
 
 namespace Jaeger;
 
+use Exception;
 use Jaeger\Thrift\AgentClient;
+use LogicException;
+use Socket;
 
 /**
  * send thrift to jaeger-agent
  * Class UdpClient
+ *
  * @package Jaeger
  */
+class UdpClient
+{
 
-class UdpClient{
+    private string $host;
 
-    private $host = '';
-
-    private $post = '';
-
-    private $socket = '';
-
-    private $agentClient = null;
-
-    public function __construct($hostPost, AgentClient $agentClient){
-        list($this->host, $this->post) = explode(":", $hostPost);
-        $this->agentClient = $agentClient;
-        $this->socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
-    }
-
+    private int $port;
 
     /**
-     * @return bool
+     * @var resource|Socket|false
      */
-    public function isOpen(){
-        return $this->socket !== null;
+    private $socket;
+
+    private AgentClient $agentClient;
+
+    public function __construct(string $hostPost, AgentClient $agentClient)
+    {
+        [$this->host, $port] = explode(":", $hostPost);
+        $this->port        = (int)$port;
+        $this->agentClient = $agentClient;
+        $this->socket      = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
     }
 
+    public function isOpen(): bool
+    {
+        return $this->socket !== false;
+    }
 
     /**
      * send thrift
-     * @param $batch
+     *
+     * @param array{thriftProcess: array, thriftSpans: array} $batch
+     *
      * @return bool
+     * @throws LogicException
+     * @throws Exception
      */
-    public function emitBatch($batch){
+    public function emitBatch(array $batch): bool
+    {
+        if ($this->socket === false) {
+            throw new LogicException("Cannot emit batch. Socket is not opened.");
+        }
+
         $buildThrift = $this->agentClient->buildThrift($batch);
-        if(isset($buildThrift['len']) && $buildThrift['len'] && $this->isOpen()) {
-            $len = $buildThrift['len'];
+
+        if (isset($buildThrift['len']) && $buildThrift['len'] && $this->isOpen()) {
+            $len        = $buildThrift['len'];
             $enitThrift = $buildThrift['thriftStr'];
-            $res = socket_sendto($this->socket, $enitThrift, $len, 0, $this->host, $this->post);
-            if($res === false) {
-                throw new \Exception("emit failse");
+
+            /** @psalm-suppress PossiblyInvalidArgument */
+            $res = socket_sendto($this->socket, $enitThrift, $len, 0, $this->host, $this->port);
+
+            if ($res === false) {
+                throw new Exception("Thrift emit failed");
             }
 
             return true;
-        }else{
-            return false;
         }
+
+        return false;
     }
 
+    public function close(): void
+    {
+        if ($this->socket === false) {
+            throw new LogicException('Cannot close non-opened socket');
+        }
 
-    public function close(){
+        /** @psalm-suppress PossiblyInvalidArgument */
         socket_close($this->socket);
-        $this->socket = null;
+
+        $this->socket = false;
     }
 }

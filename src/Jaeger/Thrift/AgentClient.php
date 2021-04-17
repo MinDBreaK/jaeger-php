@@ -24,9 +24,14 @@ use Jaeger\Constants;
 class AgentClient
 {
 
-    public static $tptl = null;
+    public static TCompactProtocol|null $tptl = null;
 
-    public function buildThrift($batch)
+    /**
+     * @param array{thriftProcess: array, thriftSpans: array} $batch
+     *
+     * @return array{len: int, thriftStr: string}
+     */
+    public function buildThrift(array $batch): array
     {
         $tran = new TMemoryBuffer();
         self::$tptl = new TCompactProtocol($tran);
@@ -39,14 +44,16 @@ class AgentClient
         self::$tptl->writeStructEnd();
         self::$tptl->writeMessageEnd();
 
-        $batchLen = $tran->available();
+        $batchLen = (int) $tran->available();
         $batchThriftStr = $tran->read(Constants\UDP_PACKET_MAX_LENGTH);
 
         return ['len' => $batchLen, 'thriftStr' => $batchThriftStr];
     }
 
-
-    private function handleBatch($batch)
+    /**
+     * @param array{thriftProcess: mixed, thriftSpans: array[]} $batch
+     */
+    private function handleBatch(array $batch): void
     {
         self::$tptl->writeFieldBegin("batch", TType::STRUCT, 1);
 
@@ -60,8 +67,10 @@ class AgentClient
         self::$tptl->writeFieldEnd();
     }
 
-
-    private function handleThriftSpans($thriftSpans)
+    /**
+     * @param array[] $thriftSpans
+     */
+    private function handleThriftSpans(array $thriftSpans): void
     {
         self::$tptl->writeFieldBegin("spans", TType::LST, 2);
         self::$tptl->writeListBegin(TType::STRUCT, count($thriftSpans));
@@ -77,7 +86,7 @@ class AgentClient
     }
 
 
-    private function handleThriftProcess($thriftProcess)
+    private function handleThriftProcess(array $thriftProcess): void
     {
         self::$tptl->writeFieldBegin("process", TType::STRUCT, 1);
         (new Process($thriftProcess))->write(self::$tptl);

@@ -30,22 +30,21 @@ class Span implements TStruct{
     {
     }
 
-
     private function __clone()
     {
     }
 
-
-    public static function getInstance(){
-        if(! (self::$instance instanceof self) )
-        {
+    public static function getInstance(): self
+    {
+        if (!(self::$instance instanceof self)) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
-
-    public function setThriftSpan($thriftSpan = []){
+    public function setThriftSpan($thriftSpan = [])
+    {
         self::$thriftSpan = $thriftSpan;
     }
 
