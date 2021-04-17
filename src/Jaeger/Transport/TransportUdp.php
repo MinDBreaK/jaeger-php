@@ -74,6 +74,9 @@ class TransportUdp implements Transport
         $this->thriftProtocol = new TCompactProtocol($this->tran);
     }
 
+    /**
+     * @throws JsonException
+     */
     public function buildAndCalcSizeOfProcessThrift(Jaeger $jaeger): void
     {
         $jaeger->processThrift = (new JaegerThriftSpan())->buildJaegerProcessThrift($jaeger);

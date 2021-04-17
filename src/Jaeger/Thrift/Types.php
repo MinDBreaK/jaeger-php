@@ -15,17 +15,19 @@
 
 namespace Jaeger\Thrift;
 
-class Types {
+use InvalidArgumentException;
 
-    const TAG_TYPE_STRING = 0;
-    const TAG_TYPE_DOUBLE = 1;
-	const TAG_TYPE_BOOL = 2;
-	const TAG_TYPE_LONG = 3;
-	const TAG_TYPE_BINARY = 4;
+class Types
+{
+    public const TAG_TYPE_STRING = 0;
+    public const TAG_TYPE_DOUBLE = 1;
+    public const TAG_TYPE_BOOL   = 2;
+    public const TAG_TYPE_LONG   = 3;
+    public const TAG_TYPE_BINARY = 4;
 
-
-    public static function stringToTagType($string){
-        switch($string){
+    public static function stringToTagType(string $string): int
+    {
+        switch ($string) {
             case "STRING":
                 return self::TAG_TYPE_STRING;
             case "DOUBLE":
@@ -37,12 +39,13 @@ class Types {
             case "BINARY":
                 return self::TAG_TYPE_BINARY;
         }
-        return "not a valid TagType string";
+
+        throw new InvalidArgumentException('Unsupported type');
     }
 
-
-    public static function tagTypeToString($tagType){
-        switch($tagType){
+    public static function tagTypeToString(int $tagType): string
+    {
+        switch ($tagType) {
             case self::TAG_TYPE_STRING:
                 return "STRING";
             case self::TAG_TYPE_DOUBLE:

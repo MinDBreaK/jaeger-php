@@ -20,11 +20,11 @@ use Thrift\Type\TType;
 
 class Span implements TStruct{
 
-    public static $thriftSpan = null;
+    public static ?array $thriftSpan = null;
 
-    public static $tptl = null;
+    public static ?TProtocol $tptl = null;
 
-    public static $instance = null;
+    public static ?Span $instance = null;
 
     private function __construct()
     {
@@ -43,32 +43,31 @@ class Span implements TStruct{
         return self::$instance;
     }
 
-    public function setThriftSpan($thriftSpan = [])
+    public function setThriftSpan($thriftSpan = []): void
     {
         self::$thriftSpan = $thriftSpan;
     }
 
-
-    public function getThriftSpan(){
+    public function getThriftSpan(): ?array
+    {
         return self::$thriftSpan;
     }
 
-
-    public function write(TProtocol $t)
+    public function write(TProtocol $t): bool
     {
         self::$tptl = $t;
-        if(isset(self::$thriftSpan['wrote']) && self::$thriftSpan['wrote']){
+        if (isset(self::$thriftSpan['wrote']) && self::$thriftSpan['wrote']) {
             $tran = self::$tptl->getTransport();
             $tran->write(self::$thriftSpan['wrote']);
         } else {
             $this->handleSpan(self::$thriftSpan);
         }
+
+        return true;
     }
 
-
-    public function read(TProtocol $t)
+    public function read(TProtocol $t): void
     {
-        // TODO: Implement read() method.
     }
 
 
