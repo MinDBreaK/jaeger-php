@@ -15,8 +15,9 @@
 
 namespace Jaeger\Thrift;
 
+use Thrift\Exception\TException;
+use Thrift\Exception\TTransportException;
 use Thrift\Protocol\TProtocol;
-use Thrift\Transport\TTransport;
 use Thrift\Type\TType;
 
 class Process implements TStruct{
@@ -25,12 +26,19 @@ class Process implements TStruct{
 
     public static string $serverName = '';
 
+    /**
+     * @var array<array-key, array{key: string, vStr: string, vType: string}>
+     */
     public static array $thriftTags = [];
 
     public static string $wrote;
 
     /**
-     * @param array{serverName: string, tags: array, wrote?: string} $processThrift
+     * @param array{
+     *     serverName: string,
+     *     tags: array<array-key, array{key: string, vStr: string, vType: string}>,
+     *     wrote?: string
+     * } $processThrift
      */
     public function __construct(array $processThrift)
     {
@@ -39,11 +47,14 @@ class Process implements TStruct{
         self::$wrote      = $processThrift['wrote'] ?? '';
     }
 
+    /**
+     * @throws TTransportException
+     * @throws TException
+     */
     public function write(TProtocol $t): bool
     {
         self::$tptl = $t;
         if (self::$wrote) {
-            /** @var TTransport $tran */
             $tran = self::$tptl->getTransport();
             $tran->write(self::$wrote);
         } else {
@@ -63,6 +74,7 @@ class Process implements TStruct{
 
     private function handleProcessSName(): void
     {
+        /** @psalm-suppress PossiblyNullReference */
         self::$tptl->writeFieldBegin("serverName", TType::STRING, 1);
 
         self::$tptl->writeString(self::$serverName);
@@ -74,6 +86,7 @@ class Process implements TStruct{
     private function handleProcessTags(): void
     {
         if(count(self::$thriftTags) > 0) {
+            /** @psalm-suppress PossiblyNullReference */
             self::$tptl->writeFieldBegin("tags", TType::LST, 2);
             self::$tptl->writeListBegin(TType::STRUCT, count(self::$thriftTags));
 
