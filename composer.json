@@ -7,7 +7,7 @@
   "require":           {
       "php": ">=8.0",
       "ext-sockets": "*",
-      "packaged/thrift": "0.10.0",
+      "packaged/thrift": "0.13.1",
       "opentracing/opentracing": "^1.0"
   },
   "authors": [

@@ -17,9 +17,9 @@ namespace Jaeger\Thrift;
 
 use Thrift\Protocol\TProtocol;
 
-interface TStruct {
+interface TStruct
+{
+    public function write(TProtocol $t): bool;
 
-    public function write(TProtocol $t);
-
-    public function read(TProtocol $t);
+    public function read(TProtocol $t): void;
 }
