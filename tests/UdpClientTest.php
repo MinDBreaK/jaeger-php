@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -25,19 +26,21 @@ class UdpClientTest extends TestCase
 
     public $agentClient = null;
 
-    public function setUp(){
+    public function setUp()
+    {
         $this->agentClient = $this->createMock(AgentClient::class);
         $this->udpClient = new UdpClient('localhost:6831', $this->agentClient);
     }
 
 
-    public function testIsOpen(){
+    public function testIsOpen()
+    {
         $this->assertTrue($this->udpClient->isOpen());
     }
 
 
-    public function testEmitBatch(){
-
+    public function testEmitBatch()
+    {
         $this->agentClient->expects($this->once())->method('buildThrift')
             ->willReturn(['len'=> 3 , 'thriftStr' => 123]);
         $batch = ['thriftProcess' => ''
@@ -47,7 +50,8 @@ class UdpClientTest extends TestCase
     }
 
 
-    public function testEmitBatchFalse(){
+    public function testEmitBatchFalse()
+    {
         $batch = ['thriftProcess' => ''
             , 'thriftSpans' => ''];
 
@@ -64,7 +68,8 @@ class UdpClientTest extends TestCase
         $this->assertFalse($this->udpClient->emitBatch($batch));
     }
 
-    public function testClose(){
+    public function testClose()
+    {
         $this->udpClient->close();
         $this->assertFalse($this->udpClient->isOpen());
     }

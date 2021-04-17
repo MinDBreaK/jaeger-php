@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -23,7 +24,6 @@ use Jaeger\Constants;
 
 class AgentClient
 {
-
     public static TCompactProtocol|null $tptl = null;
 
     /**
@@ -76,7 +76,7 @@ class AgentClient
         self::$tptl->writeListBegin(TType::STRUCT, count($thriftSpans));
 
         $agentSpan = Span::getInstance();
-        foreach ($thriftSpans as $thriftSpan){
+        foreach ($thriftSpans as $thriftSpan) {
             $agentSpan->setThriftSpan($thriftSpan);
             $agentSpan->write(self::$tptl);
         }
@@ -92,6 +92,4 @@ class AgentClient
         (new Process($thriftProcess))->write(self::$tptl);
         self::$tptl->writeFieldEnd();
     }
-
-
 }

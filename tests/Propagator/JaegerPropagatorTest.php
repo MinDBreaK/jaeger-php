@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -21,14 +22,16 @@ use Jaeger\Constants;
 use Jaeger\SpanContext;
 use Jaeger\Propagator\JaegerPropagator;
 
-class JaegerPropagatorTest extends TestCase{
-
-    public function getSpanContext(){
+class JaegerPropagatorTest extends TestCase
+{
+    public function getSpanContext()
+    {
         return new SpanContext(1562237095801441413, 0, 1, null, 1);
     }
 
 
-    public function testInject(){
+    public function testInject()
+    {
         $context = $this->getSpanContext();
         $context->traceIdLow = 1562237095801441413;
         $jaeger = new JaegerPropagator();
@@ -39,7 +42,8 @@ class JaegerPropagatorTest extends TestCase{
     }
 
 
-    public function testInject128Bit(){
+    public function testInject128Bit()
+    {
         $context = $this->getSpanContext();
         $context->traceIdLow = 1562289663898779811;
         $context->traceIdHigh = 1562289663898881723;
@@ -53,8 +57,8 @@ class JaegerPropagatorTest extends TestCase{
     }
 
 
-    public function testExtract(){
-
+    public function testExtract()
+    {
         $jaeger = new JaegerPropagator();
         $carrier = [];
         $carrier[strtoupper(Constants\Tracer_State_Header_Name)] = '15ae2e5c8e2ecc85:15ae2e5c8e2ecc85:0:1';
@@ -67,8 +71,8 @@ class JaegerPropagatorTest extends TestCase{
     }
 
 
-    public function testExtractDebugId(){
-
+    public function testExtractDebugId()
+    {
         $jaeger = new JaegerPropagator();
         $carrier[Constants\Trace_Baggage_Header_Prefix . 'baggage'] = 2;
 
@@ -81,7 +85,8 @@ class JaegerPropagatorTest extends TestCase{
     }
 
 
-    public function testExtractUberctx(){
+    public function testExtractUberctx()
+    {
         $jaeger = new JaegerPropagator();
 
         $carrier[Constants\Trace_Baggage_Header_Prefix] = '2.0.0';
@@ -97,7 +102,8 @@ class JaegerPropagatorTest extends TestCase{
     }
 
 
-    public function testExtractBaggageHeader(){
+    public function testExtractBaggageHeader()
+    {
         $jaeger = new JaegerPropagator();
         $carrier = [];
 
@@ -108,7 +114,8 @@ class JaegerPropagatorTest extends TestCase{
     }
 
 
-    public function testExtractBadBaggageHeader(){
+    public function testExtractBadBaggageHeader()
+    {
         $jaeger = new JaegerPropagator();
 
         $carrier = [];
@@ -120,8 +127,8 @@ class JaegerPropagatorTest extends TestCase{
     }
 
 
-    public function testExtract128Bit(){
-
+    public function testExtract128Bit()
+    {
         $jaeger = new JaegerPropagator();
         $carrier = [];
         $carrier[strtoupper(Constants\Tracer_State_Header_Name)]
@@ -136,8 +143,8 @@ class JaegerPropagatorTest extends TestCase{
     }
 
 
-    public function testExtractPsr7(){
-
+    public function testExtractPsr7()
+    {
         $jaeger = new JaegerPropagator();
         $carrier = [];
         $carrier[] = [strtoupper(Constants\Tracer_State_Header_Name) => '15ae2e5c8e2ecc85:15ae2e5c8e2ecc85:0:1'];
@@ -150,7 +157,8 @@ class JaegerPropagatorTest extends TestCase{
     }
 
 
-    public function testExtractReturnsNull(){
+    public function testExtractReturnsNull()
+    {
         $jaeger = new JaegerPropagator();
         $carrier = [];
 

@@ -1,34 +1,43 @@
 {
-  "name":              "jukylin/jaeger-php",
-  "description":       "php client for jaeger",
-  "keywords":          ["jaeger","trace","opentracing"],
-  "license":           "Apache-2.0",
-  "minimum-stability": "stable",
-  "require":           {
-      "php": ">=8.0",
-      "ext-sockets": "*",
-      "packaged/thrift": "0.13.1",
-      "opentracing/opentracing": "^1.0"
-  },
-  "authors": [
-    {
-      "name": "jukylin",
-      "email": "742161455@qq.com"
-    }
-  ],
-  "autoload":          {
-    "psr-4": {
-      "Jaeger\\": "src\\Jaeger"
+    "name": "mindbreak/jaeger-php",
+    "description": "PHP Client for Jaeger",
+    "keywords": [
+        "jaeger",
+        "trace",
+        "opentracing"
+    ],
+    "license": "Apache-2.0",
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=8.0",
+        "ext-sockets": "*",
+        "packaged/thrift": "0.13.1",
+        "opentracing/opentracing": "^1.0"
     },
-    "files": [
-      "src/Jaeger/Constants.php"
-    ]
-  },
-  "scripts": {
-    "test": "./vendor/bin/phpunit"
-  },
-  "require-dev": {
-      "vimeo/psalm": "^4.7",
-      "phpunit/phpunit": "^9.5"
-  }
+    "authors": [
+        {
+            "name": "jukylin",
+            "email": "742161455@qq.com"
+        },
+        {
+            "name": "mindbreak",
+            "email": "antoine@dunn.tf"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Jaeger\\": "src\\Jaeger"
+        },
+        "files": [
+            "src/Jaeger/Constants.php"
+        ]
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit"
+    },
+    "require-dev": {
+        "vimeo/psalm": "^4.7",
+        "phpunit/phpunit": "^9.5",
+        "friendsofphp/php-cs-fixer": "^2.18"
+    }
 }

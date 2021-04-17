@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -31,7 +32,6 @@ use UnexpectedValueException;
 
 class TransportUdp implements Transport
 {
-
     private TMemoryBuffer $tran;
 
     public static string $hostPort = '';
@@ -93,7 +93,6 @@ class TransportUdp implements Transport
      */
     public function append(Jaeger $jaeger): bool
     {
-
         if ($jaeger->process === null) {
             $this->buildAndCalcSizeOfProcessThrift($jaeger);
         }
@@ -101,7 +100,6 @@ class TransportUdp implements Transport
         $thriftSpansBuffer = [];  // Uncommitted span used to temporarily store shards
 
         foreach ($jaeger->spans as $span) {
-
             $spanThrift = (new JaegerThriftSpan())->buildJaegerSpanThrift($span);
 
             $agentSpan = Span::getInstance();
@@ -149,7 +147,6 @@ class TransportUdp implements Transport
      */
     private function getAndCalcSizeOfSerializedThrift(TStruct $ts, array &$serializedThrift): int
     {
-
         $ts->write($this->thriftProtocol);
         $serThriftStrlen = (int)$this->tran->available();
 

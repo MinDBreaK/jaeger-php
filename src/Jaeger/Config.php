@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -26,8 +27,8 @@ use Jaeger\Propagator\ZipkinPropagator;
 use const Jaeger\Constants\PROPAGATOR_JAEGER;
 use const Jaeger\Constants\PROPAGATOR_ZIPKIN;
 
-class Config {
-
+class Config
+{
     private $transport = null;
 
     private $reporter = null;
@@ -49,20 +50,19 @@ class Config {
     public static string $propagator = PROPAGATOR_JAEGER;
 
 
-    private function __construct(){
-
+    private function __construct()
+    {
     }
 
 
-    private function __clone(){
-
+    private function __clone()
+    {
     }
 
 
     public static function getInstance(): self
     {
-        if(! (self::$instance instanceof self) )
-        {
+        if (! (self::$instance instanceof self)) {
             self::$instance = new self();
         }
         return self::$instance;
@@ -70,46 +70,45 @@ class Config {
 
     public function initTracer(string $serverName, string $agentHostPort = ''): Jaeger
     {
-
-        if(self::$disabled){
+        if (self::$disabled) {
             return NoopTracer::create();
         }
 
-        if($serverName === ''){
+        if ($serverName === '') {
             throw new \UnexpectedValueException("serverName require");
         }
 
-        if(isset(self::$tracer[$serverName]) && !empty(self::$tracer[$serverName])){
+        if (isset(self::$tracer[$serverName]) && !empty(self::$tracer[$serverName])) {
             return self::$tracer[$serverName];
         }
 
 
-        if($this->transport == null){
+        if ($this->transport == null) {
             $this->transport = new TransportUdp($agentHostPort);
         }
 
-        if($this->reporter == null) {
+        if ($this->reporter == null) {
             $this->reporter = new RemoteReporter($this->transport);
         }
 
-        if($this->sampler == null){
+        if ($this->sampler == null) {
             $this->sampler = new ConstSampler(true);
         }
 
-        if($this->scopeManager == null){
+        if ($this->scopeManager == null) {
             $this->scopeManager = new ScopeManager();
         }
 
 
-        if(self::$propagator === PROPAGATOR_ZIPKIN){
+        if (self::$propagator === PROPAGATOR_ZIPKIN) {
             $propagator = new ZipkinPropagator();
-        }else{
+        } else {
             $propagator = new JaegerPropagator();
         }
 
         $tracer = new Jaeger($serverName, $this->reporter, $this->sampler, $this->scopeManager, $propagator);
 
-        if($this->gen128bit == true){
+        if ($this->gen128bit == true) {
             $tracer->gen128bit();
         }
 
@@ -125,21 +124,24 @@ class Config {
      * close tracer
      * @param $disabled
      */
-    public function setDisabled($disabled){
+    public function setDisabled($disabled)
+    {
         self::$disabled = $disabled;
 
         return $this;
     }
 
 
-    public function setTransport(Transport\Transport $transport){
+    public function setTransport(Transport\Transport $transport)
+    {
         $this->transport = $transport;
 
         return $this;
     }
 
 
-    public function setReporter(Reporter $reporter){
+    public function setReporter(Reporter $reporter)
+    {
         $this->reporter = $reporter;
 
         return $this;
@@ -164,8 +166,8 @@ class Config {
 
     public function flush(): bool
     {
-        if(count(self::$tracer) > 0) {
-            foreach(self::$tracer as $tracer){
+        if (count(self::$tracer) > 0) {
+            foreach (self::$tracer as $tracer) {
                 $tracer->reportSpan();
             }
             $this->reporter->close();

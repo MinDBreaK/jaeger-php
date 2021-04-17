@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -30,10 +31,8 @@ use Jaeger\Propagator\JaegerPropagator;
 
 class JaegerTest extends TestCase
 {
-
-
-    public function getJaeger(){
-
+    public function getJaeger()
+    {
         $tranSport = new TransportUdp();
         $reporter = new RemoteReporter($tranSport);
         $sampler = new ConstSampler();
@@ -43,13 +42,14 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testNew(){
+    public function testNew()
+    {
         $Jaeger = $this->getJaeger();
         $this->assertInstanceOf(Jaeger::class, $Jaeger);
     }
 
-    public function testGetEnvTags(){
-
+    public function testGetEnvTags()
+    {
         $_SERVER['JAEGER_TAGS'] = 'a=b,c=d';
         $Jaeger = $this->getJaeger();
         $tags = $Jaeger->getEnvTags();
@@ -58,7 +58,8 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testSetTags(){
+    public function testSetTags()
+    {
         $Jaeger = $this->getJaeger();
 
         $Jaeger->setTags(['version' => '2.0.0']);
@@ -66,7 +67,8 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testInject(){
+    public function testInject()
+    {
         $Jaeger = $this->getJaeger();
         $Jaeger->setPropagator(new JaegerPropagator());
 
@@ -77,7 +79,8 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testInjectUnSupportFormat(){
+    public function testInjectUnSupportFormat()
+    {
         $Jaeger = $this->getJaeger();
         $Jaeger->setPropagator(new JaegerPropagator());
 
@@ -88,7 +91,8 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testExtract(){
+    public function testExtract()
+    {
         $Jaeger = $this->getJaeger();
         $Jaeger->setPropagator(new JaegerPropagator());
 
@@ -101,7 +105,8 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testExtractUnSupportFormat(){
+    public function testExtractUnSupportFormat()
+    {
         $Jaeger = $this->getJaeger();
         $Jaeger->setPropagator(new JaegerPropagator());
 
@@ -112,7 +117,8 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testStartSpan(){
+    public function testStartSpan()
+    {
         $Jaeger = $this->getJaeger();
         $span = $Jaeger->startSpan('test');
         $this->assertNotEmpty($span->startTime);
@@ -184,14 +190,16 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testReportSpan(){
+    public function testReportSpan()
+    {
         $Jaeger = $this->getJaeger();
         $Jaeger->startSpan('test');
         $Jaeger->reportSpan();
         $this->assertEmpty($Jaeger->getSpans());
     }
 
-    public function testStartActiveSpan(){
+    public function testStartActiveSpan()
+    {
         $Jaeger = $this->getJaeger();
         $Jaeger->startActiveSpan('test');
 
@@ -199,7 +207,8 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testGetActiveSpan(){
+    public function testGetActiveSpan()
+    {
         $Jaeger = $this->getJaeger();
         $Jaeger->startActiveSpan('test');
 
@@ -209,7 +218,8 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testFlush(){
+    public function testFlush()
+    {
         $Jaeger = $this->getJaeger();
         $Jaeger->startSpan('test');
         $Jaeger->flush();
@@ -217,7 +227,8 @@ class JaegerTest extends TestCase
     }
 
 
-    public function testNestedSpanBaggage(){
+    public function testNestedSpanBaggage()
+    {
         $tracer = $this->getJaeger();
 
         $parent = $tracer->startSpan('parent');

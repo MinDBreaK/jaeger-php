@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -21,14 +22,16 @@ use Jaeger\Constants;
 use Jaeger\SpanContext;
 use Jaeger\Propagator\ZipkinPropagator;
 
-class ZipkinPropagatorTest extends TestCase{
-
-    public function getSpanContext(){
+class ZipkinPropagatorTest extends TestCase
+{
+    public function getSpanContext()
+    {
         return new SpanContext(1562237095801441413, 0, 1, null, 1);
     }
 
 
-    public function testInject(){
+    public function testInject()
+    {
         $context = $this->getSpanContext();
         $context->traceIdLow = 1562237095801441413;
         $zipkin = new ZipkinPropagator();
@@ -43,7 +46,8 @@ class ZipkinPropagatorTest extends TestCase{
     }
 
 
-    public function testInject128Bit(){
+    public function testInject128Bit()
+    {
         $context = $this->getSpanContext();
         $context->traceIdLow = 1562289663898779811;
         $context->traceIdHigh = 1562289663898881723;
@@ -59,8 +63,8 @@ class ZipkinPropagatorTest extends TestCase{
         $this->assertTrue($carrier[Constants\X_B3_SAMPLED] == 1);
     }
 
-    public function testExtract(){
-
+    public function testExtract()
+    {
         $zipkin = new ZipkinPropagator();
         $carrier = [];
         $carrier[Constants\X_B3_TRACEID] = '15ae2e5c8e2ecc85';
@@ -76,8 +80,8 @@ class ZipkinPropagatorTest extends TestCase{
     }
 
 
-    public function testExtract128Bit(){
-
+    public function testExtract128Bit()
+    {
         $zipkin = new ZipkinPropagator();
         $carrier = [];
         $carrier[Constants\X_B3_TRACEID] = '15ae5e2c04f50ebb15ae5e2c04f380a3';
@@ -94,7 +98,8 @@ class ZipkinPropagatorTest extends TestCase{
     }
 
 
-    public function testExtractReturnsNull(){
+    public function testExtractReturnsNull()
+    {
         $jaeger = new ZipkinPropagator();
         $carrier = [];
 

@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -22,22 +23,24 @@ use PHPUnit\Framework\TestCase;
 
 class SpanTest extends TestCase
 {
-
-    public function testOverwriteOperationName(){
+    public function testOverwriteOperationName()
+    {
         $span = new Span('test', new NoopSpanContext(), []);
         $span->overwriteOperationName('test2');
         $this->assertTrue($span->getOperationName() == 'test2');
     }
 
 
-    public function testAddTags(){
+    public function testAddTags()
+    {
         $span = new Span('test', new NoopSpanContext(), []);
         $span->setTag('test', 'test');
         $this->assertTrue((isset($span->tags['test']) && $span->tags['test'] == 'test'));
     }
 
 
-    public function testFinish(){
+    public function testFinish()
+    {
         $span = new Span('test', new NoopSpanContext(), []);
         $span->setTag('test', 'test');
         $span->finish();
@@ -45,7 +48,8 @@ class SpanTest extends TestCase
     }
 
 
-    public function testGetContext(){
+    public function testGetContext()
+    {
         $span = new Span('test', new NoopSpanContext(), []);
         $spanContext = $span->getContext();
         $this->assertInstanceOf(NoopSpanContext::class, $spanContext);
@@ -53,7 +57,8 @@ class SpanTest extends TestCase
 
 
 
-    public function testLog(){
+    public function testLog()
+    {
         $span = new Span('test', new NoopSpanContext(), []);
         $logs = [
             'msg' => 'is test',
@@ -64,7 +69,8 @@ class SpanTest extends TestCase
     }
 
 
-    public function testGetBaggageItem(){
+    public function testGetBaggageItem()
+    {
         $span = new Span('test', new SpanContext(0, 0, 0), []);
         $span->addBaggageItem('version', '2.0.0');
 

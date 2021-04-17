@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -22,8 +23,8 @@ use Jaeger\ScopeManager;
 
 class ScopeMangerTest extends TestCase
 {
-
-    public function testActivate(){
+    public function testActivate()
+    {
         $span1 = new Span('test', new NoopSpanContext(), []);
 
         $scopeManager = new ScopeManager();
@@ -33,8 +34,8 @@ class ScopeMangerTest extends TestCase
         $this->assertTrue($span1 === $span2);
     }
 
-    public function testGetActive(){
-
+    public function testGetActive()
+    {
         $span = new Span('test', new NoopSpanContext(), []);
 
         $scopeManager = new ScopeManager();
@@ -45,8 +46,8 @@ class ScopeMangerTest extends TestCase
     }
 
 
-    public function testDelActive(){
-
+    public function testDelActive()
+    {
         $span = new Span('test', new NoopSpanContext(), []);
 
         $scopeManager = new ScopeManager();
@@ -59,7 +60,8 @@ class ScopeMangerTest extends TestCase
         $this->assertTrue($getRes === null);
     }
 
-    public function testDelActiveNestedScopes() {
+    public function testDelActiveNestedScopes()
+    {
         $scopeManager = new ScopeManager();
         $span1 = new Span('Z', new NoopSpanContext(), []);
         $scope1 = $scopeManager->activate($span1, true);
@@ -87,7 +89,8 @@ class ScopeMangerTest extends TestCase
         $this->assertTrue($active === null);
     }
 
-    public function testDelActiveReNestScopes() {
+    public function testDelActiveReNestScopes()
+    {
         $scopeManager = new ScopeManager();
         $span1 = new Span('A', new NoopSpanContext(), []);
         $scope1 = $scopeManager->activate($span1, true);

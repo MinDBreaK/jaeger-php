@@ -1,11 +1,12 @@
 <?php
+
 /*
  * Copyright (c) 2019, The Jaeger Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -20,27 +21,29 @@ use Jaeger\SpanContext;
 
 class SpanContextTest extends TestCase
 {
-
-
-    public function getSpanContext(){
+    public function getSpanContext()
+    {
         return new SpanContext(1, 1, 1, null, 1);
     }
 
 
-    public function testNew(){
+    public function testNew()
+    {
         $spanContext = $this->getSpanContext();
         $this->assertInstanceOf(SpanContext::class, $spanContext);
     }
 
 
-    public function testWithBaggageItem(){
+    public function testWithBaggageItem()
+    {
         $spanContext = $this->getSpanContext();
         $res = $spanContext->withBaggageItem('version', '2.0.0');
         $this->assertTrue($res);
     }
 
 
-    public function testGetBaggageItem(){
+    public function testGetBaggageItem()
+    {
         $spanContext = $this->getSpanContext();
         $res = $spanContext->withBaggageItem('version', '2.0.0');
 
@@ -52,7 +55,8 @@ class SpanContextTest extends TestCase
     }
 
 
-    public function testBuildString(){
+    public function testBuildString()
+    {
         $spanContext = $this->getSpanContext();
         $spanContext->traceIdLow = 1;
         $this->assertTrue($spanContext->buildString() == '1:1:1:1');
@@ -62,7 +66,8 @@ class SpanContextTest extends TestCase
     }
 
 
-    public function testSpanIdToString(){
+    public function testSpanIdToString()
+    {
         $spanContext = $this->getSpanContext();
         $this->assertTrue($spanContext->spanIdToString() == '1');
 
@@ -71,7 +76,8 @@ class SpanContextTest extends TestCase
     }
 
 
-    public function testTraceIdLowToString(){
+    public function testTraceIdLowToString()
+    {
         $spanContext = $this->getSpanContext();
         $spanContext->traceIdLow = "111111";
         $this->assertTrue($spanContext->traceIdLowToString() == '1b207');
@@ -81,7 +87,8 @@ class SpanContextTest extends TestCase
     }
 
 
-    public function testTraceIdToString(){
+    public function testTraceIdToString()
+    {
         $spanContext = $this->getSpanContext();
         $spanContext->traceIdToString('1b207000000000001b207');
         $this->assertTrue($spanContext->traceIdLow == '111111');
@@ -93,7 +100,4 @@ class SpanContextTest extends TestCase
         $this->assertTrue($spanContext->traceIdLow == '111111');
         $this->assertTrue(!$spanContext->traceIdHigh);
     }
-
-
-
 }
