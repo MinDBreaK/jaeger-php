@@ -20,10 +20,9 @@ use OpenTracing\SpanContext;
 
 class Span implements \OpenTracing\Span
 {
-
     private string $operationName;
 
-    public mixed $startTime = '';
+    public int $startTime;
 
     public string $finishTime = '';
 
@@ -35,6 +34,9 @@ class Span implements \OpenTracing\Span
 
     public array $logs = [];
 
+    /**
+     * @var array<string, mixed>
+     */
     public array $tags = [];
 
     /**
@@ -42,14 +44,7 @@ class Span implements \OpenTracing\Span
      */
     public array $references = [];
 
-    /**
-     * Span constructor.
-     *
-     * @param             $operationName
-     * @param SpanContext $spanContext
-     * @param Reference[] $references
-     */
-    public function __construct($operationName, SpanContext $spanContext, array $references, $startTime = null)
+    public function __construct(string $operationName, SpanContext $spanContext, array $references, int $startTime = null)
     {
         $this->operationName = $operationName;
         $this->startTime     = $startTime ?? $this->microtimeToInt();
@@ -57,28 +52,22 @@ class Span implements \OpenTracing\Span
         $this->references    = $references;
     }
 
-    /**
-     * @return string
-     */
     public function getOperationName(): string
     {
         return $this->operationName;
     }
 
-    /**
-     * @return SpanContext
-     */
     public function getContext(): SpanContext
     {
         return $this->spanContext;
     }
 
     /**
-     * @param null $finishTime                              if passing float or int
-     *                                                      it should represent the timestamp (including as many
-     *                                                      decimal places as you need)
+     * @param int|null $finishTime if passing float or int
+     *                             it should represent the timestamp (including as many
+     *                             decimal places as you need)
      */
-    public function finish($finishTime = null): void
+    public function finish(?int $finishTime = null): void
     {
         $this->finishTime = $finishTime ?? $this->microtimeToInt();
         $this->duration   = $this->finishTime - $this->startTime;
@@ -89,7 +78,7 @@ class Span implements \OpenTracing\Span
         $this->operationName = $newOperationName;
     }
 
-    public function setTag(string $key, $value): void
+    public function setTag(string $key, mixed $value): void
     {
         $this->tags[$key] = $value;
     }
@@ -98,9 +87,9 @@ class Span implements \OpenTracing\Span
      * Adds a log record to the span
      *
      * @param array                        $fields [key => val]
-     * @param int|float|\DateTimeInterface $timestamp
+     * @param int|null $timestamp
      */
-    public function log(array $fields = [], $timestamp = null): void
+    public function log(array $fields = [], ?int $timestamp = null): void
     {
         $log['timestamp'] = $timestamp ?: $this->microtimeToInt();
         $log['fields']    = $fields;

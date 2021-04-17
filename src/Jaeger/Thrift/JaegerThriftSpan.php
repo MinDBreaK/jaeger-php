@@ -54,7 +54,7 @@ class JaegerThriftSpan
             'spanId'        => $spContext->spanId,
             'parentSpanId'  => $spContext->parentId,
             'operationName' => $span->getOperationName(),
-            'flags'         => intval($spContext->flags),
+            'flags'         => (int)$spContext->flags,
             'startTime'     => $span->startTime,
             'duration'      => $span->duration,
             'tags'          => $this->buildTags($span->tags),
