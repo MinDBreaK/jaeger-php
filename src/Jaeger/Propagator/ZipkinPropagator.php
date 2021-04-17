@@ -15,33 +15,49 @@
 
 namespace Jaeger\Propagator;
 
-use Jaeger\SpanContext;
 use Jaeger\Constants;
+use OpenTracing\SpanContext;
 
-class ZipkinPropagator implements Propagator{
+class ZipkinPropagator implements Propagator
+{
 
-    public function inject(SpanContext $spanContext, $format, &$carrier){
-        $carrier[Constants\X_B3_TRACEID] = $spanContext ->traceIdLowToString();
+    /**
+     * @param SpanContext           $spanContext
+     * @param string                $format
+     * @param array<string, scalar> $carrier
+     */
+    public function inject(SpanContext $spanContext, $format, &$carrier): void
+    {
+        assert($spanContext instanceof \Jaeger\SpanContext);
+
+        $carrier[Constants\X_B3_TRACEID]       = $spanContext->traceIdLowToString();
         $carrier[Constants\X_B3_PARENT_SPANID] = $spanContext->parentIdToString();
-        $carrier[Constants\X_B3_SPANID] = $spanContext->spanIdToString();
-        $carrier[Constants\X_B3_SAMPLED] = $spanContext->flagsToString();
+        $carrier[Constants\X_B3_SPANID]        = $spanContext->spanIdToString();
+        $carrier[Constants\X_B3_SAMPLED]       = $spanContext->flagsToString();
     }
 
-
-    public function extract($format, $carrier){
+    public function extract(string $format, array $carrier): ?SpanContext
+    {
         $spanContext = null;
 
         foreach ($carrier as $k => $val) {
-            if (in_array($k, [Constants\X_B3_TRACEID,
-                Constants\X_B3_PARENT_SPANID, Constants\X_B3_SPANID, Constants\X_B3_SAMPLED])
-            ) {
-                if($spanContext === null){
-                    $spanContext = new SpanContext(0, 0, 0, null, 0);
+            if (in_array(
+                $k,
+                [
+                    Constants\X_B3_TRACEID,
+                    Constants\X_B3_PARENT_SPANID,
+                    Constants\X_B3_SPANID,
+                    Constants\X_B3_SAMPLED,
+                ],
+                true
+            )) {
+                if ($spanContext === null) {
+                    $spanContext = new \Jaeger\SpanContext('0', '0', 0, null, 0);
                 }
                 continue;
             }
         }
-        
+
         if(isset($carrier[Constants\X_B3_TRACEID]) && $carrier[Constants\X_B3_TRACEID]){
             $spanContext->traceIdToString($carrier[Constants\X_B3_TRACEID]);
         }

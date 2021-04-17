@@ -31,7 +31,7 @@ class Tags implements TStruct
     public array $tags = [];
 
     /**
-     * @var array{key: string, vType: string, vStr: string}[]
+     * @var array<array-key, array{key: string, vType: string, vStr?: string, vDouble?: int, vBool?: boolean}>[]
      */
     public array $thriftTags = [];
 
@@ -110,7 +110,7 @@ class Tags implements TStruct
     }
 
     /**
-     * @param array<array-key, array{key: string, vStr: string, vType: string}> $thriftTags
+     * @param array<array-key, array{key: string, vType: string, vStr?: string, vDouble?: int, vBool?: boolean}>[] $thriftTags
      */
     public function setThriftTags(array $thriftTags): void
     {
@@ -126,6 +126,7 @@ class Tags implements TStruct
     }
 
     /**
+     * @return array{key: string, vType: string, vStr?: string, vDouble?: int, vBool?: boolean}[]
      * @throws JsonException
      */
     public function buildTags(): array
@@ -157,14 +158,14 @@ class Tags implements TStruct
                     $thriftTags[] = [
                         'key'     => $k,
                         'vType'   => 'DOUBLE',
-                        'vDouble' => $v,
+                        'vDouble' => (int)$v,
                     ];
                     break;
                 case "array":
                     $thriftTags[] = [
                         'key'   => $k,
                         'vType' => 'STRING',
-                        'vStr'  => json_encode($v, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+                        'vStr'  => json_encode($v, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) ?: '',
                     ];
                     break;
                 default:

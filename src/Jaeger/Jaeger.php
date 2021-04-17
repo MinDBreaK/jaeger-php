@@ -15,29 +15,33 @@
 
 namespace Jaeger;
 
+use Exception;
+use Jaeger\Propagator\Propagator;
 use Jaeger\Sampler\Sampler;
 use Jaeger\Thrift\Process;
 use OpenTracing\Scope;
 use OpenTracing\ScopeManager;
-use OpenTracing\SpanContext;
 use OpenTracing\Formats;
+use OpenTracing\SpanContext as OTSpanContext;
 use OpenTracing\Tracer;
 use Jaeger\Reporter\Reporter;
 use OpenTracing\StartSpanOptions;
 use OpenTracing\Reference;
-use Jaeger\Propagator\Propagator;
 use OpenTracing\UnsupportedFormatException;
+use function count;
 
 class Jaeger implements Tracer
 {
 
-    private ?Reporter $reporter = null;
+    private Reporter $reporter;
 
-    private ?Sampler $sampler = null;
-
-    private bool $gen128bit = false;
+    private Sampler $sampler;
 
     private ScopeManager $scopeManager;
+
+    public Propagator $propagator;
+
+    private bool $gen128bit = false;
 
     /**
      * @var Span[]
@@ -53,50 +57,65 @@ class Jaeger implements Tracer
 
     public string $serverName;
 
-    public array $processThrift = [];
-
-    public ?Propagator $propagator = null;
+    /**
+     * @var array{
+     *     serverName: string,
+     *     tags: array<array-key, array{key: string, vType: string, vStr?: string, vDouble?: int, vBool?: boolean}>[],
+     * }
+     */
+    public array $processThrift;
 
     public function __construct(
         string $serverName,
         Reporter $reporter,
         Sampler $sampler,
-        ScopeManager $scopeManager
+        ScopeManager $scopeManager,
+        Propagator $propagator,
     ) {
-
-        $this->reporter = $reporter;
-
-        $this->sampler = $sampler;
-
+        $this->reporter     = $reporter;
+        $this->sampler      = $sampler;
         $this->scopeManager = $scopeManager;
+        $this->propagator   = $propagator;
 
-        $this->setTags($this->sampler->getTags());
-        $this->setTags($this->getEnvTags());
+        $this->addTags($this->sampler->getTags());
+        $this->addTags($this->getEnvTags());
 
         if ($serverName === '') {
-            $this->serverName = $_SERVER['SERVER_NAME'] ?? 'unknow server';
+            $this->serverName = (string)($_SERVER['SERVER_NAME'] ?? 'unknow server');
         } else {
             $this->serverName = $serverName;
         }
+
+        $this->processThrift = [
+            'serverName' => $this->serverName,
+            'tags'       => [],
+        ];
     }
 
     /**
-     * @param array $tags key => value
+     * @param array<string, scalar|array> $tags
      */
     public function setTags(array $tags = []): void
     {
-        if (!empty($tags)) {
-            $this->tags = array_merge($this->tags, $tags);
+        $this->tags = $tags;
+    }
+
+    /**
+     * @param array<string, scalar|array> $tags
+     */
+    public function addTags(array $tags): void
+    {
+        foreach ($tags as $key => $tag) {
+            $this->tags[$key] = $tag;
         }
     }
 
     /**
-     * init span info
-     *
-     * @param string $operationName
-     * @param array  $options
+     * @param string                 $operationName
+     * @param array|StartSpanOptions $options
      *
      * @return Span
+     * @throws Exception
      */
     public function startSpan(string $operationName, $options = []): Span
     {
@@ -106,18 +125,18 @@ class Jaeger implements Tracer
         }
 
         $parentSpan = $this->getParentSpanContext($options);
-        if ($parentSpan === null || !$parentSpan->traceIdLow) {
+        if ($parentSpan === null || $parentSpan->traceIdLow === 0) {
             $low                     = $this->generateId();
-            $spanId                  = $low;
+            $spanId                  = (string)$low;
             $flags                   = $this->sampler->IsSampled();
-            $spanContext             = new \Jaeger\SpanContext($spanId, 0, $flags, null, 0);
+            $spanContext             = new SpanContext($spanId, '0', $flags ? 1 : 0, null, 0);
             $spanContext->traceIdLow = $low;
             if ($this->gen128bit === true) {
                 $spanContext->traceIdHigh = $this->generateId();
             }
         } else {
-            $spanContext             = new \Jaeger\SpanContext(
-                $this->generateId(),
+            $spanContext             = new SpanContext(
+                (string)$this->generateId(),
                 $parentSpan->spanId, $parentSpan->flags, $parentSpan->baggage, 0
             );
             $spanContext->traceIdLow = $parentSpan->traceIdLow;
@@ -126,38 +145,40 @@ class Jaeger implements Tracer
             }
         }
 
-        $startTime = $options->getStartTime() ? (int)($options->getStartTime() * 1000000) : null;
-        $span      = new Span($operationName, $spanContext, $options->getReferences(), $startTime);
+        $tmpStartTime = $options->getStartTime();
+        if ($tmpStartTime instanceof \DateTimeInterface) {
+            $startTime = (int)$tmpStartTime->format('Uu');
+        } else {
+            $startTime = $tmpStartTime ? (int)($tmpStartTime * 1000000) : null;
+        }
+
+        $span = new Span($operationName, $spanContext, $options->getReferences(), $startTime);
         if (!empty($options->getTags())) {
             foreach ($options->getTags() as $k => $tag) {
+                if (!is_scalar($tag) || !is_string($k)) {
+                    throw new \UnexpectedValueException(
+                        'Tag contains invalid value : '
+                        . (get_debug_type($tag))
+                    );
+                }
+
                 $span->setTag($k, $tag);
             }
         }
-        if ($spanContext->isSampled() == true) {
+
+        if ($spanContext->isSampled() === true) {
             $this->spans[] = $span;
         }
 
         return $span;
     }
 
-    public function setPropagator(Propagator $propagator): void
+    public function inject(OTSpanContext $spanContext, string $format, &$carrier): void
     {
-        $this->propagator = $propagator;
-    }
-
-    /**
-     * 注入
-     *
-     * @param SpanContext $spanContext
-     * @param string      $format
-     * @param             $carrier
-     */
-    public function inject(SpanContext $spanContext, string $format, &$carrier): void
-    {
-        if ($format == Formats\TEXT_MAP) {
+        if ($format === Formats\TEXT_MAP) {
             $this->propagator->inject($spanContext, $format, $carrier);
         } else {
-            throw UnsupportedFormat::forFormat($format);
+            throw UnsupportedFormatException::forFormat($format);
         }
     }
 
@@ -221,22 +242,24 @@ class Jaeger implements Tracer
         return $this->getScopeManager()->activate($span, $options->shouldFinishSpanOnClose());
     }
 
-    private function getParentSpanContext(StartSpanOptions $options)
+    private function getParentSpanContext(StartSpanOptions $options): ?SpanContext
     {
         $references = $options->getReferences();
         $parentSpan = null;
 
         foreach ($references as $ref) {
             $parentSpan = $ref->getSpanContext();
-            if ($ref->isType(Reference::CHILD_OF)) {
+            if ($parentSpan instanceof SpanContext && $ref->isType(Reference::CHILD_OF)) {
                 return $parentSpan;
             }
         }
 
-        if ($parentSpan && (
+        if ($parentSpan instanceof SpanContext
+            && (
                 $parentSpan->isValid()
                 || (!$parentSpan->isTraceIdValid() && $parentSpan->debugId)
-                || count($parentSpan->baggage) > 0)
+                || count($parentSpan->baggage) > 0
+            )
         ) {
             return $parentSpan;
         }
@@ -244,12 +267,16 @@ class Jaeger implements Tracer
         return null;
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function getEnvTags(): array
     {
         $tags = [];
         if (isset($_SERVER['JAEGER_TAGS']) && $_SERVER['JAEGER_TAGS'] !== '') {
-            $envTags = explode(',', $_SERVER['JAEGER_TAGS']);
-            foreach ($envTags as $envK => $envTag) {
+            $envTags = explode(',', (string)$_SERVER['JAEGER_TAGS']);
+
+            foreach ($envTags as $envTag) {
                 [$key, $value] = explode('=', $envTag);
                 $tags[$key] = $value;
             }
@@ -269,8 +296,11 @@ class Jaeger implements Tracer
         $this->reporter->close();
     }
 
-    private function generateId(): string
+    /**
+     * @throws Exception
+     */
+    private function generateId(): int
     {
-        return microtime(true) * 10000 . rand(10000, 99999);
+        return (int)(microtime(true) * 10000 . random_int(10000, 99999));
     }
 }

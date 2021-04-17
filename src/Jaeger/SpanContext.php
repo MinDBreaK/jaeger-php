@@ -34,26 +34,32 @@ class SpanContext implements \OpenTracing\SpanContext
     // flags is a bitmap containing such bits as 'sampled' and 'debug'.
     public int $flags;
 
-    // Distributed Context baggage. The is a snapshot in time.
-    // key => val
-    public $baggage;
+    /**
+     * Distributed Context baggage. The is a snapshot in time.
+     *
+     * @var array<string, scalar>
+     */
+    public array $baggage;
 
     // debugID can be set to some correlation ID when the context is being
     // extracted from a TextMap carrier.
     public $debugId;
 
-    public function __construct(string $spanId, string $parentId, int $flags, $baggage = null, $debugId = 0)
+    /**
+     * @param array<string, scalar> $baggage
+     */
+    public function __construct(string $spanId, string $parentId, int $flags, array $baggage = null, int $debugId = 0)
     {
         $this->spanId   = $spanId;
         $this->parentId = $parentId;
         $this->flags    = $flags;
-        $this->baggage  = $baggage;
+        $this->baggage  = $baggage ?? [];
         $this->debugId  = $debugId;
     }
 
     public function getBaggageItem(string $key): ?string
     {
-        return $this->baggage[$key] ?? null;
+        return isset($this->baggage[$key]) ? (string) $this->baggage[$key] : null;
     }
 
     public function withBaggageItem(string $key, string $value): \OpenTracing\SpanContext
@@ -108,14 +114,9 @@ class SpanContext implements \OpenTracing\SpanContext
         return sprintf("%x", $this->flags);
     }
 
-    /**
-     * 是否取样
-     *
-     * @return mixed
-     */
-    public function isSampled(): mixed
+    public function isSampled(): bool
     {
-        return $this->flags;
+        return $this->flags > 0;
     }
 
     public function hexToSignedInt($hex): int

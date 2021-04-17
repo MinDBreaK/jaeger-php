@@ -14,38 +14,40 @@
  */
 namespace Jaeger\Sampler;
 
+use Exception;
 use Jaeger\Constants;
 
-class ProbabilisticSampler implements Sampler{
-
+class ProbabilisticSampler implements Sampler
+{
     // min 0, max 1
-    private $rate = 0;
+    private float $rate;
 
-    private $tags = [];
+    /**
+     * @var array<string, scalar|array>
+     */
+    private array $tags = [];
 
-    
-    public function __construct($rate = 0.0001){
-        $this->rate = $rate;
-        $this->tags[Constants\SAMPLER_TYPE_TAG_KEY] = 'probabilistic';
+    public function __construct(float $rate = 0.0001)
+    {
+        $this->rate                                  = $rate;
+        $this->tags[Constants\SAMPLER_TYPE_TAG_KEY]  = 'probabilistic';
         $this->tags[Constants\SAMPLER_PARAM_TAG_KEY] = $rate;
     }
 
-
-    public function IsSampled(){
-        if(mt_rand(1, 1 / $this->rate) == 1){
-            return true;
-        }else{
-            return false;
-        }
+    /**
+     * @throws Exception
+     */
+    public function IsSampled(): bool
+    {
+        return random_int(1, (int)(1 / $this->rate)) === 1;
     }
 
-
-    public function Close(){
-        //nothing to do
+    public function close(): void
+    {
     }
 
-
-    public function getTags(){
+    public function getTags(): array
+    {
         return $this->tags;
     }
 }

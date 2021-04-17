@@ -17,6 +17,7 @@ namespace Jaeger\Thrift;
 
 use Jaeger\Jaeger;
 use Jaeger\Span;
+use Jaeger\SpanContext;
 use JsonException;
 use OpenTracing\Reference;
 
@@ -98,10 +99,16 @@ class JaegerThriftSpan
         return $tagsObj->buildTags();
     }
 
-    private function buildLogs($logs): array
+    /**
+     * @param array{fields: array<string, array<array-key, mixed>|scalar>, timestamp: int}[] $logs
+     *
+     * @throws JsonException
+     */
+    private function buildLogs(array $logs): array
     {
         $resultLogs = [];
         $tagsObj    = Tags::getInstance();
+
         foreach ($logs as $log) {
             $tagsObj->setTags($log['fields']);
             $fields       = $tagsObj->buildTags();
@@ -117,7 +124,7 @@ class JaegerThriftSpan
     /**
      * @param Reference[] $references
      *
-     * @return array
+     * @return array{refType: string|null, traceIdLow: int, traceIdHigh: int, spanId: string}[]
      */
     private function buildReferences(array $references): array
     {
@@ -125,15 +132,16 @@ class JaegerThriftSpan
         foreach ($references as $ref) {
             if ($ref->isType(Reference::CHILD_OF)) {
                 $type = SpanRefType::CHILD_OF;
-            } else {
-                if ($ref->isType(Reference::FOLLOWS_FROM)) {
-                    $type = SpanRefType::FOLLOWS_FROM;
-                }
+            } elseif ($ref->isType(Reference::FOLLOWS_FROM)) {
+                $type = SpanRefType::FOLLOWS_FROM;
             }
 
-            $ctx       = $ref->getSpanContext();
+            $ctx = $ref->getSpanContext();
+
+            assert($ctx instanceof SpanContext);
+
             $spanRef[] = [
-                'refType'     => $type,
+                'refType'     => $type ?? null,
                 'traceIdLow'  => $ctx->traceIdLow,
                 'traceIdHigh' => $ctx->traceIdHigh,
                 'spanId'      => $ctx->spanId,

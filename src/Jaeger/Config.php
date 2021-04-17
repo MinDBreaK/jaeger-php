@@ -24,6 +24,7 @@ use Jaeger\Sampler\ConstSampler;
 use Jaeger\Propagator\JaegerPropagator;
 use Jaeger\Propagator\ZipkinPropagator;
 use const Jaeger\Constants\PROPAGATOR_JAEGER;
+use const Jaeger\Constants\PROPAGATOR_ZIPKIN;
 
 class Config {
 
@@ -99,16 +100,17 @@ class Config {
             $this->scopeManager = new ScopeManager();
         }
 
-        $tracer = new Jaeger($serverName, $this->reporter, $this->sampler, $this->scopeManager);
+
+        if(self::$propagator === PROPAGATOR_ZIPKIN){
+            $propagator = new ZipkinPropagator();
+        }else{
+            $propagator = new JaegerPropagator();
+        }
+
+        $tracer = new Jaeger($serverName, $this->reporter, $this->sampler, $this->scopeManager, $propagator);
 
         if($this->gen128bit == true){
             $tracer->gen128bit();
-        }
-
-        if(self::$propagator == \Jaeger\Constants\PROPAGATOR_ZIPKIN){
-            $tracer->setPropagator(new ZipkinPropagator());
-        }else{
-            $tracer->setPropagator(new JaegerPropagator());
         }
 
 

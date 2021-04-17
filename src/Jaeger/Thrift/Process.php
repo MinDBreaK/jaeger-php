@@ -27,7 +27,7 @@ class Process implements TStruct{
     public static string $serverName = '';
 
     /**
-     * @var array<array-key, array{key: string, vStr: string, vType: string}>
+     * @var array<array-key, array{key: string, vType: string, vStr?: string, vDouble?: int, vBool?: boolean}>
      */
     public static array $thriftTags = [];
 
@@ -36,7 +36,7 @@ class Process implements TStruct{
     /**
      * @param array{
      *     serverName: string,
-     *     tags: array<array-key, array{key: string, vStr: string, vType: string}>,
+     *     tags: array<array-key, array{key: string, vType: string, vStr?: string, vDouble?: int, vBool?: boolean}>,
      *     wrote?: string
      * } $processThrift
      */

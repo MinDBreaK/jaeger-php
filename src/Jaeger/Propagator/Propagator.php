@@ -15,25 +15,24 @@
 
 namespace Jaeger\Propagator;
 
-use Jaeger\SpanContext;
+use OpenTracing\SpanContext;
 
-interface Propagator{
+interface Propagator
+{
 
     /**
-     * 注入
-     * @param SpanContext $spanContext
-     * @param string $format
-     * @param $carrier
+     * @param SpanContext           $spanContext
+     * @param string                $format
+     * @param array<string, scalar> $carrier
      */
-    public function inject(SpanContext $spanContext, $format, &$carrier);
-
+    public function inject(SpanContext $spanContext, string $format, array &$carrier): void;
 
     /**
-     * 提取
-     * @param string $format
-     * @param $carrier
+     * @param string                $format
+     * @param array<string, scalar|string[]> $carrier
+     *
      * @return SpanContext|null
      */
-    public function extract($format, $carrier);
+    public function extract(string $format, array $carrier): ?SpanContext;
 
 }
