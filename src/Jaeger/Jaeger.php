@@ -15,6 +15,7 @@
 
 namespace Jaeger;
 
+use DateTimeInterface;
 use Exception;
 use Jaeger\Propagator\Propagator;
 use Jaeger\Sampler\Sampler;
@@ -22,12 +23,14 @@ use Jaeger\Thrift\Process;
 use OpenTracing\Scope;
 use OpenTracing\ScopeManager;
 use OpenTracing\Formats;
+use OpenTracing\Span as OTSpan;
 use OpenTracing\SpanContext as OTSpanContext;
 use OpenTracing\Tracer;
 use Jaeger\Reporter\Reporter;
 use OpenTracing\StartSpanOptions;
 use OpenTracing\Reference;
 use OpenTracing\UnsupportedFormatException;
+use UnexpectedValueException;
 use function count;
 
 class Jaeger implements Tracer
@@ -146,7 +149,7 @@ class Jaeger implements Tracer
         }
 
         $tmpStartTime = $options->getStartTime();
-        if ($tmpStartTime instanceof \DateTimeInterface) {
+        if ($tmpStartTime instanceof DateTimeInterface) {
             $startTime = (int)$tmpStartTime->format('Uu');
         } else {
             $startTime = $tmpStartTime ? (int)($tmpStartTime * 1000000) : null;
@@ -156,7 +159,7 @@ class Jaeger implements Tracer
         if (!empty($options->getTags())) {
             foreach ($options->getTags() as $k => $tag) {
                 if (!is_scalar($tag) || !is_string($k)) {
-                    throw new \UnexpectedValueException(
+                    throw new UnexpectedValueException(
                         'Tag contains invalid value : '
                         . (get_debug_type($tag))
                     );
@@ -182,13 +185,7 @@ class Jaeger implements Tracer
         }
     }
 
-    /**
-     * 提取
-     *
-     * @param string $format
-     * @param        $carrier
-     */
-    public function extract(string $format, $carrier): ?SpanContext
+    public function extract(string $format, $carrier): ?OTSpanContext
     {
         if ($format === Formats\TEXT_MAP) {
             return $this->propagator->extract($format, $carrier);
@@ -215,7 +212,7 @@ class Jaeger implements Tracer
         return $this->scopeManager;
     }
 
-    public function getActiveSpan(): ?Span
+    public function getActiveSpan(): ?OTSpan
     {
         $activeScope = $this->getScopeManager()->getActive();
         if ($activeScope === null) {
@@ -225,6 +222,11 @@ class Jaeger implements Tracer
         return $activeScope->getSpan();
     }
 
+    /**
+     * @param array|StartSpanOptions $options
+     *
+     * @throws Exception
+     */
     public function startActiveSpan(string $operationName, $options = []): Scope
     {
         if (!$options instanceof StartSpanOptions) {
@@ -232,8 +234,8 @@ class Jaeger implements Tracer
         }
 
         $parentSpan = $this->getParentSpanContext($options);
-        if ($parentSpan === null && $this->getActiveSpan() !== null) {
-            $parentContext = $this->getActiveSpan()->getContext();
+        if ($parentSpan === null && ($activeSpan = $this->getActiveSpan()) !== null) {
+            $parentContext = $activeSpan->getContext();
             $options       = $options->withParent($parentContext);
         }
 
