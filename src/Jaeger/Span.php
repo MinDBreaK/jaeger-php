@@ -15,6 +15,7 @@
 
 namespace Jaeger;
 
+use DateTimeInterface;
 use OpenTracing\Reference;
 use OpenTracing\SpanContext;
 
@@ -24,14 +25,17 @@ class Span implements \OpenTracing\Span
 
     public int $startTime;
 
-    public string $finishTime = '';
+    public ?int $finishTime = null;
 
     public string $spanKind = '';
 
-    public ?SpanContext $spanContext = null;
+    public SpanContext $spanContext;
 
     public int $duration = 0;
 
+    /**
+     * @var array<array{timestamp: int, fields: array}>
+     */
     public array $logs = [];
 
     /**
@@ -44,8 +48,15 @@ class Span implements \OpenTracing\Span
      */
     public array $references = [];
 
-    public function __construct(string $operationName, SpanContext $spanContext, array $references, int $startTime = null)
-    {
+    /**
+     * @param Reference[] $references
+     */
+    public function __construct(
+        string $operationName,
+        SpanContext $spanContext,
+        array $references,
+        int $startTime = null
+    ) {
         $this->operationName = $operationName;
         $this->startTime     = $startTime ?? $this->microtimeToInt();
         $this->spanContext   = $spanContext;
@@ -63,14 +74,20 @@ class Span implements \OpenTracing\Span
     }
 
     /**
-     * @param int|null $finishTime if passing float or int
-     *                             it should represent the timestamp (including as many
-     *                             decimal places as you need)
+     * @param int|float|DateTimeInterface|null $finishTime  if passing float or int
+     *                                                      it should represent the timestamp (including as many
+     *                                                      decimal places as you need)
      */
-    public function finish(?int $finishTime = null): void
+    public function finish($finishTime = null): void
     {
-        $this->finishTime = $finishTime ?? $this->microtimeToInt();
-        $this->duration   = $this->finishTime - $this->startTime;
+        if ($this->finishTime !== null) {
+            @trigger_error('Span is already finished', E_USER_WARNING);
+        }
+
+        $this->finishTime = $finishTime ? $this->timedParamToInt($finishTime) : $this->microtimeToInt();
+
+        /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
+        $this->duration = $this->finishTime - $this->startTime;
     }
 
     public function overwriteOperationName(string $newOperationName): void
@@ -78,7 +95,11 @@ class Span implements \OpenTracing\Span
         $this->operationName = $newOperationName;
     }
 
-    public function setTag(string $key, mixed $value): void
+    /**
+     * @param string                $key
+     * @param bool|float|int|string $value
+     */
+    public function setTag(string $key, $value): void
     {
         $this->tags[$key] = $value;
     }
@@ -86,12 +107,13 @@ class Span implements \OpenTracing\Span
     /**
      * Adds a log record to the span
      *
-     * @param array                        $fields [key => val]
-     * @param int|null $timestamp
+     * @param array                            $fields [key => val]
+     * @param DateTimeInterface|int|float|null $timestamp
      */
-    public function log(array $fields = [], ?int $timestamp = null): void
+    public function log(array $fields = [], $timestamp = null): void
     {
-        $log['timestamp'] = $timestamp ?: $this->microtimeToInt();
+        $log              = [];
+        $log['timestamp'] = $timestamp ? $this->timedParamToInt($timestamp) : $this->microtimeToInt();
         $log['fields']    = $fields;
         $this->logs[]     = $log;
     }
@@ -115,5 +137,14 @@ class Span implements \OpenTracing\Span
     private function microtimeToInt(): int
     {
         return (int)(microtime(true) * 1000000);
+    }
+
+    private function timedParamToInt(float|DateTimeInterface|int $time): int
+    {
+        if ($time instanceof DateTimeInterface) {
+            return (int)$time->format('Uu');
+        }
+
+        return (int)$time;
     }
 }
