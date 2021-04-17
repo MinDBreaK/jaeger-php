@@ -17,7 +17,6 @@ namespace Jaeger;
 
 use DateTimeInterface;
 use OpenTracing\Reference;
-use OpenTracing\SpanContext;
 
 class Span implements \OpenTracing\Span
 {
@@ -39,7 +38,7 @@ class Span implements \OpenTracing\Span
     public array $logs = [];
 
     /**
-     * @var array<string, mixed>
+     * @var array<string, bool|float|int|string>
      */
     public array $tags = [];
 

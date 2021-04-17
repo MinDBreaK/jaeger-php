@@ -16,9 +16,9 @@
 namespace Jaeger;
 
 use Jaeger\Sampler\Sampler;
+use Jaeger\Thrift\Process;
 use OpenTracing\Scope;
 use OpenTracing\ScopeManager;
-use OpenTracing\Span;
 use OpenTracing\SpanContext;
 use OpenTracing\Formats;
 use OpenTracing\Tracer;
@@ -39,21 +39,26 @@ class Jaeger implements Tracer
 
     private ScopeManager $scopeManager;
 
+    /**
+     * @var Span[]
+     */
     public array $spans = [];
 
+    /**
+     * @var array<string, scalar|array>
+     */
     public array $tags = [];
 
-    public $process = null;
+    public ?Process $process = null;
 
-    public mixed $serverName = '';
+    public string $serverName;
 
-    public mixed $processThrift = '';
+    public array $processThrift = [];
 
-    /** @var Propagator|null */
     public ?Propagator $propagator = null;
 
     public function __construct(
-        $serverName = '',
+        string $serverName,
         Reporter $reporter,
         Sampler $sampler,
         ScopeManager $scopeManager
@@ -122,7 +127,7 @@ class Jaeger implements Tracer
         }
 
         $startTime = $options->getStartTime() ? (int)($options->getStartTime() * 1000000) : null;
-        $span      = new \Jaeger\Span($operationName, $spanContext, $options->getReferences(), $startTime);
+        $span      = new Span($operationName, $spanContext, $options->getReferences(), $startTime);
         if (!empty($options->getTags())) {
             foreach ($options->getTags() as $k => $tag) {
                 $span->setTag($k, $tag);

@@ -17,64 +17,88 @@ namespace Jaeger\Thrift;
 
 use Jaeger\Jaeger;
 use Jaeger\Span;
+use JsonException;
 use OpenTracing\Reference;
 
 class JaegerThriftSpan
 {
 
-    public function buildJaegerProcessThrift(Jaeger $jaeger)
+    /**
+     * @param Jaeger $jaeger
+     *
+     * @return array{serverName: string, tags: array}
+     * @throws JsonException
+     */
+    public function buildJaegerProcessThrift(Jaeger $jaeger): array
     {
         $tags              = [];
-        $ip                = isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '0.0.0.0';
-        $tags['peer.ipv4'] = $ip;
-
-        $port              = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : '80';
-        $tags['peer.port'] = $port;
+        $tags['peer.ipv4'] = (string)($_SERVER['SERVER_ADDR'] ?: '0.0.0.0');
+        $tags['peer.port'] = (string)($_SERVER['SERVER_PORT'] ?: '80');
 
         $tags    = array_merge($tags, $jaeger->tags);
         $tagsObj = Tags::getInstance();
         $tagsObj->setTags($tags);
+
         $thriftTags = $tagsObj->buildTags();
 
-        $processThrift = [
+        return [
             'serverName' => $jaeger->serverName,
             'tags'       => $thriftTags,
         ];
-
-        return $processThrift;
     }
 
-    public function buildJaegerSpanThrift(Span $span)
+    /**
+     * @param Span $span
+     *
+     * @return array{
+     *     traceIdLow: int,
+     *     traceIdHigh: int,
+     *     spanId: string,
+     *     parentSpanId: string,
+     *     operationName: string,
+     *     flags: int,
+     *     startTime: int,
+     *     duration: int,
+     *     tags: array,
+     *     logs: array,
+     *     references: array
+     * }
+     *
+     * @throws JsonException
+     */
+    public function buildJaegerSpanThrift(Span $span): array
     {
+        $spContext = $span->spanContext;
 
-        $spContext  = $span->spanContext;
-        $thriftSpan = [
+        return [
             'traceIdLow'    => $spContext->traceIdLow,
             'traceIdHigh'   => $spContext->traceIdHigh,
             'spanId'        => $spContext->spanId,
             'parentSpanId'  => $spContext->parentId,
             'operationName' => $span->getOperationName(),
-            'flags'         => (int)$spContext->flags,
+            'flags'         => $spContext->flags,
             'startTime'     => $span->startTime,
             'duration'      => $span->duration,
             'tags'          => $this->buildTags($span->tags),
             'logs'          => $this->buildLogs($span->logs),
             'references'    => $this->buildReferences($span->references),
         ];
-
-        return $thriftSpan;
     }
 
-    private function buildTags($tags)
+    /**
+     * @param array<string, scalar|array> $tags
+     *
+     * @throws JsonException
+     */
+    private function buildTags(array $tags): array
     {
         $tagsObj = Tags::getInstance();
         $tagsObj->setTags($tags);
-        $resultTags = $tagsObj->buildTags();
 
-        return $resultTags;
+        return $tagsObj->buildTags();
     }
 
-    private function buildLogs($logs)
+    private function buildLogs($logs): array
     {
         $resultLogs = [];
         $tagsObj    = Tags::getInstance();
@@ -95,7 +119,7 @@ class JaegerThriftSpan
      *
      * @return array
      */
-    private function buildReferences(array $references)
+    private function buildReferences(array $references): array
     {
         $spanRef = [];
         foreach ($references as $ref) {

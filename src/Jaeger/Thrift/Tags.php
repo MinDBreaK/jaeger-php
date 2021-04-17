@@ -15,54 +15,50 @@
 
 namespace Jaeger\Thrift;
 
+use JsonException;
 use Thrift\Protocol\TProtocol;
 use Thrift\Type\TType;
 
-class Tags implements TStruct{
+class Tags implements TStruct
+{
+    public static ?TProtocol $tptl = null;
 
-    public static $tptl = null;
+    public static ?Tags $instance = null;
 
-    public static $instance = null;
+    /**
+     * @var array<string, scalar|array> $tags
+     */
+    public array $tags = [];
 
-    public $tags = null;
+    /**
+     * @var array{key: string, vType: string, vStr: string}[]
+     */
+    public array $thriftTags = [];
 
-    public $thriftTags = null;
-
-
-    private function __construct(){
-
-    }
-
-
-    private function __clone(){
-
-    }
-
-
-    public static function getInstance(){
-        if(!(self::$instance instanceof self)){
+    public static function getInstance(): self
+    {
+        if (!(self::$instance instanceof self)) {
             self::$instance = new self();
         }
 
         return self::$instance;
     }
 
-
-    public function write(TProtocol $t){
-
+    public function write(TProtocol $t): bool
+    {
         self::$tptl = $t;
 
-        if(empty($this->thriftTags)){
+        if (empty($this->thriftTags)) {
             return false;
         }
 
-        foreach($this->thriftTags as $tag) {
+        foreach ($this->thriftTags as $tag) {
 
             self::$tptl->writeStructBegin("Tag");
 
             if (isset($tag['key'])) {
                 self::$tptl->writeFieldBegin("key", TType::STRING, 1);
-                self::$tptl->writeString(strval($tag['key']));
+                self::$tptl->writeString($tag['key']);
                 self::$tptl->writeFieldEnd();
             }
 
@@ -106,79 +102,79 @@ class Tags implements TStruct{
             self::$tptl->writeStructEnd();
         }
 
-
         return true;
     }
 
-
-    public function read(TProtocol $t){
-
+    public function read(TProtocol $t): void
+    {
     }
 
-
-    public function setThriftTags($thriftTags){
+    /**
+     * @param array<array-key, array{key: string, vStr: string, vType: string}> $thriftTags
+     */
+    public function setThriftTags(array $thriftTags): void
+    {
         $this->thriftTags = $thriftTags;
     }
 
-
-    public function setTags($tags){
+    /**
+     * @param array<string, scalar|array> $tags
+     */
+    public function setTags(array $tags): void
+    {
         $this->tags = $tags;
     }
 
-
-    public function buildTags(){
+    /**
+     * @throws JsonException
+     */
+    public function buildTags(): array
+    {
 
         $thriftTags = [];
-        if(empty($this->tags)){
+        if (empty($this->tags)) {
             return $thriftTags;
         }
 
-        foreach ($this->tags as $k => $v){
-            switch(gettype($v)){
+        foreach ($this->tags as $k => $v) {
+            switch (gettype($v)) {
                 case "string":
                     $thriftTags[] = [
-                        'key' => $k,
+                        'key'   => $k,
                         'vType' => 'STRING',
-                        'vStr' => $v,
+                        'vStr'  => $v,
                     ];
                     break;
                 case "boolean":
                     $thriftTags[] = [
-                        'key' => $k,
+                        'key'   => $k,
                         'vType' => 'BOOL',
                         'vBool' => $v,
                     ];
                     break;
+                case "integer":
                 case "double":
                     $thriftTags[] = [
-                        'key' => $k,
-                        'vType' => 'DOUBLE',
-                        'vDouble' => $v,
-                    ];
-                    break;
-                case "integer":
-                    $thriftTags[] = [
-                        'key' => $k,
-                        'vType' => 'DOUBLE',
+                        'key'     => $k,
+                        'vType'   => 'DOUBLE',
                         'vDouble' => $v,
                     ];
                     break;
                 case "array":
                     $thriftTags[] = [
-                        'key' => $k,
+                        'key'   => $k,
                         'vType' => 'STRING',
-                        'vStr' => json_encode($v, JSON_UNESCAPED_UNICODE),
+                        'vStr'  => json_encode($v, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
                     ];
                     break;
                 default:
                     $thriftTags[] = [
-                        'key' => $k,
+                        'key'   => $k,
                         'vType' => 'STRING',
-                        'vStr' => is_string($v),
+                        'vStr'  => (string)$v,
                     ];
             }
         }
-
 
         return $thriftTags;
     }

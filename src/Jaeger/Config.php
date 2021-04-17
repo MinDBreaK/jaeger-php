@@ -23,6 +23,7 @@ use Jaeger\Sampler\Sampler;
 use Jaeger\Sampler\ConstSampler;
 use Jaeger\Propagator\JaegerPropagator;
 use Jaeger\Propagator\ZipkinPropagator;
+use const Jaeger\Constants\PROPAGATOR_JAEGER;
 
 class Config {
 
@@ -34,17 +35,17 @@ class Config {
 
     private $scopeManager = null;
 
-    private $gen128bit = false;
+    private bool $gen128bit = false;
 
     public static $tracer = null;
 
     public static $span = null;
 
-    public static $instance = null;
+    public static ?Config $instance = null;
 
-    public static $disabled = false;
+    public static bool $disabled = false;
 
-    public static $propagator = \Jaeger\Constants\PROPAGATOR_JAEGER;
+    public static string $propagator = PROPAGATOR_JAEGER;
 
 
     private function __construct(){

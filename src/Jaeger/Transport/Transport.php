@@ -18,7 +18,7 @@ namespace Jaeger\Transport;
 use Jaeger\Jaeger;
 
 interface Transport {
-    public function append(Jaeger $jaeger);
+    public function append(Jaeger $jaeger): bool;
 
-    public function flush();
+    public function flush(): int;
 }
