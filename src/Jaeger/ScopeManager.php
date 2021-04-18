@@ -16,24 +16,20 @@
 
 namespace Jaeger;
 
-use OpenTracing\Scope;
-use OpenTracing\Span;
+use OpenTracing\ScopeManager as ScopeManagerInterface;
+use OpenTracing\Span as SpanInterface;
+use OpenTracing\Scope as ScopeInterface;
 
-class ScopeManager implements \OpenTracing\ScopeManager
+class ScopeManager implements ScopeManagerInterface
 {
+    /**
+     * @var list<ScopeInterface>
+     */
     private array $scopes = [];
 
-    /**
-     * append scope
-     *
-     * @param \OpenTracing\Span $span
-     * @param bool              $finishSpanOnClose
-     *
-     * @return Scope
-     */
-    public function activate(Span $span, bool $finishSpanOnClose = self::DEFAULT_FINISH_SPAN_ON_CLOSE): Scope
+    public function activate(SpanInterface $span, bool $finishSpanOnClose = self::DEFAULT_FINISH_SPAN_ON_CLOSE): ScopeInterface
     {
-        $scope          = new \Jaeger\Scope($this, $span, $finishSpanOnClose);
+        $scope          = new Scope($this, $span, $finishSpanOnClose);
         $this->scopes[] = $scope;
 
         return $scope;
@@ -41,10 +37,8 @@ class ScopeManager implements \OpenTracing\ScopeManager
 
     /**
      * get last scope
-     *
-     * @return mixed|null
      */
-    public function getActive(): ?Scope
+    public function getActive(): ?ScopeInterface
     {
         if (empty($this->scopes)) {
             return null;
@@ -53,14 +47,7 @@ class ScopeManager implements \OpenTracing\ScopeManager
         return $this->scopes[count($this->scopes) - 1];
     }
 
-    /**
-     * del scope
-     *
-     * @param Scope $scope
-     *
-     * @return bool
-     */
-    public function delActive(Scope $scope): bool
+    public function delActive(ScopeInterface $scope): bool
     {
         $scopeLength = count($this->scopes);
 

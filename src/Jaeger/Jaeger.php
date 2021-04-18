@@ -225,7 +225,14 @@ class Jaeger implements Tracer
     }
 
     /**
-     * @param array|StartSpanOptions $options
+     * @param StartSpanOptions|array{
+     *     child_of?: OTSpan,
+     *     references?: Reference,
+     *     tags?: array<string, scalar|array>,
+     *     start_time?: int,
+     *     finish_span_on_close?: bool,
+     *     ignore_active_span?: bool
+     * } $options
      *
      * @throws Exception
      */
